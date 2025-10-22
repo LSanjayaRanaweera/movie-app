@@ -1,6 +1,10 @@
+import React from "react";
+
 const App = () => {
   return(
-    <h2>Movie App</h2>
+    <h1 className="text-3xl font-bold underline">
+      Movie App
+    </h1>
   )
 }
 
