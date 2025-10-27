@@ -1,7 +1,8 @@
+/* Cut and Paste from https://github.com/JavaScript-Mastery-Pro/storage-management */
 @import url("https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap");
 
-@import "tailwindcss";
+@import "tailwindcss";                  /* vite uses PostCSS and it looks for node_modules/tailwindcss with this import*/
 
 @theme {
     --color-primary: #030014;
@@ -160,3 +161,8 @@
         display: none;
     }
 }
+/*
+NOTE: Imports for Google fonts and the utility classes for tailwindcss were copied and pasted from,
+https://github.com/adrianhajdin/react-movies/tree/main?tab=readme-ov-file
+Go to Snippets and open index.css file to get them.
+*/
