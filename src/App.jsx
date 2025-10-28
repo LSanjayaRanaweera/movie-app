@@ -1,7 +1,9 @@
 import { useState, useEffect } from "react";
+import { useDebounce } from "react-use";                              //NOT part of React library
 import Search from "./components/Search.jsx";
 import Spinner from "./components/Spinner.jsx";
 import MovieCard from "./components/MovieCard.jsx";
+
 
 //API_BASE_URL, API_KEY and API_OPTIONS are declared above declaration of <App />
 const API_BASE_URL = "https://api.themoviedb.org/3";
@@ -22,6 +24,11 @@ const App = () => {
   //To display Results
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+  //To reduce API calls made with every keystroke
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
+
+  //Debounce the search term to prevent making too many API requests by waiting for the user to stop typing for 500ms
+  useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm]);             //Setter updates the debouncedSearchTerm
 
   //Create an async callback to make HTTP requests (to API) >> that will be implemented in useEffect()
   const fetchMovies = async (query = "") => {
@@ -70,8 +77,8 @@ const App = () => {
 
 //NOTE: By implementing fetchMovies() call back in useEffect + [] dependency array >> fetching is implemented only once @ mount == React component is 1st added to DOM
   useEffect(() => {
-    fetchMovies(searchTerm);
-  }, [searchTerm]);                                             //Empty dependency array == ONLY implement it once during app mounting to DOM
+    fetchMovies(debouncedSearchTerm);
+  }, [debouncedSearchTerm]);
 
   return (
     //Implementing HTML semantic tags  >> <main> <header> etc. instead of wrapper <div> or </>
@@ -135,4 +142,10 @@ Second, add searchTerm as an argument to fetchMovies(searchTerm) where it is cal
     Also add searchTerm to the dependency array of useEffect so that everytime the value of searchTerm changes, it will re-render
 Third, add a ternary operator to the assignment of endpoint to check if a query exist, i.e., change the URL endpoint if it does
 NOTE: By implementing encodeURIComponent(query) >> even none String characters can be passed on in a query
+------------------------------------------------------------------------------------------------------------------------------------------------
+NOTE: useDebounce is a custom React hook, i.e., it is NOT part of the React library.
+This hook is available through 'react-use' node module, hence first run >> npm install react-use
+Afterwards import just the hook from 'react-use'
+This custom hook delays updating a value until after a specified wait time has passed since the last change.
+
 */
