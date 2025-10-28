@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import Search from "./components/Search.jsx";
 import Spinner from "./components/Spinner.jsx";
+import MovieCard from "./components/MovieCard.jsx";
 
 //API_BASE_URL, API_KEY and API_OPTIONS are declared above declaration of <App />
 const API_BASE_URL = "https://api.themoviedb.org/3";
 const API_KEY = import.meta.env.VITE_TMDB_API_KEY;
-const API_OPTIONS = {
+const API_OPTIONS = {                                   //
   method: "GET",
   headers: {
     accept: "application/json",
@@ -22,50 +23,53 @@ const App = () => {
   const [movieList, setMovieList] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  //Create an async callback to be implemented in useEffect()
+  //Create an async callback to make HTTP requests (to API) >> that will be implemented in useEffect()
   const fetchMovies = async () => {
-    //Reset the values for isLoading and errorMessage state variables before making an API fetch
+    //Reset the values for isLoading and errorMessage state variables before making an API request with fetch()
     setIsLoading(true);
     setErrorMessage("");
 
     try {
+      //API call (request) is made within try{} by implementing native fetch() << less features than axios requests
       const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
       const response = await fetch(endpoint, API_OPTIONS);
 
-      //alert(response);                                    if everything works a popup will be displayed with alert
-      //throw new Error('Failed to fetch movies');          throwing an error to simulate error display
+      /*NOTE: For a QUICK evaluation of the outcome of the fetch request
+      alert(response);                                      if everything works a popup will be displayed with alert
+      throw new Error('Failed to fetch movies');            throwing an error to simulate error display                */
 
-      //Error
+      //Throwing an ERROR if NO response is returned with fetch()
       if (!response.ok) {
         throw new Error("Could not fetch movies");
       }
-      //NO Error
+      //If NO ERROR occurred, extract the data from return object == response
       const data = await response.json();
 
+      //Check if data has Response property
       if (data.Response === "False") {
         setErrorMessage(data.Error || "Failed to fetch movies");
-        setMovieList([]); //Error >> set the list to an []
+        setMovieList([]);                             //Error >> set the list to an []
         return;
       }
-
+      //If Response property exists, update the movieList with 'results' (an array) OR none for result use []
       setMovieList(data.results || []);
+
+    //If returned with an ERROR instead of a response OR 'res' for shorten
     } catch (error) {
       console.error(`Error fetching movies: ${error}`);
-      -(
-        //A new useState() is created above to implement error if it occurs
-        setErrorMessage("Error fetching movies. Please try again later.")
-      );
+      //A new useState() is created above to implement this error if it occurred
+      setErrorMessage("Error fetching movies. Please try again later.")
 
-      //No matter what the outcome of fetch, reset the value of isloading to false
+    //No matter what the outcome of fetch request, reset the value of isLoading to false
     } finally {
       setIsLoading(false);
     }
   };
 
+//NOTE: By implementing fetchMovies() call back in useEffect + [] dependency array >> fetching is implemented only once @ mount == React component is 1st added to DOM
   useEffect(() => {
     fetchMovies();
-  }, []);
-  //Empty dependency array == ONLY implement it once
+  }, []);                                             //Empty dependency array == ONLY implement it once
 
   return (
     //Implementing HTML semantic tags  >> <main> <header> etc. instead of wrapper <div> or </>
@@ -85,21 +89,15 @@ const App = () => {
         <section className="all-movies">
           <h2 className="mt-[40px]">All Movies</h2>
 
-          {isLoading ? ( //Complex ternary operator to display possible outcomes
+          {isLoading ? (                                    //A complex ternary operator to display ALL possible outcomes
             <Spinner />
           ) : errorMessage ? (
             <p className="text-red-500">{errorMessage}</p>
           ) : (
             <ul>
-              {movieList.map(
-                (
-                  movie //{} would require a return statement whereas () eliminates that requirement
-                ) => (
-                  <p key={movie.id} className="text-white">
-                    {movie.title}
-                  </p>
-                )
-              )}
+              {movieList.map((movie) => (                  //NOTE: a {} would require a return statement whereas a () will eliminate that requirement
+                  <MovieCard key={movie.id} movie={movie}/>
+              ))};
             </ul>
           )}
         </section>
