@@ -24,14 +24,16 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   //Create an async callback to make HTTP requests (to API) >> that will be implemented in useEffect()
-  const fetchMovies = async () => {
+  const fetchMovies = async (query = "") => {
     //Reset the values for isLoading and errorMessage state variables before making an API request with fetch()
     setIsLoading(true);
     setErrorMessage("");
 
     try {
       //API call (request) is made within try{} by implementing native fetch() << less features than axios requests
-      const endpoint = `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
+      const endpoint = query
+          ? `${API_BASE_URL}/search/movie?query=${encodeURIComponent(query)}`
+          : `${API_BASE_URL}/discover/movie?sort_by=popularity.desc`;
       const response = await fetch(endpoint, API_OPTIONS);
 
       /*NOTE: For a QUICK evaluation of the outcome of the fetch request
@@ -68,8 +70,8 @@ const App = () => {
 
 //NOTE: By implementing fetchMovies() call back in useEffect + [] dependency array >> fetching is implemented only once @ mount == React component is 1st added to DOM
   useEffect(() => {
-    fetchMovies();
-  }, []);                                             //Empty dependency array == ONLY implement it once
+    fetchMovies(searchTerm);
+  }, [searchTerm]);                                             //Empty dependency array == ONLY implement it once during app mounting to DOM
 
   return (
     //Implementing HTML semantic tags  >> <main> <header> etc. instead of wrapper <div> or </>
@@ -124,6 +126,13 @@ Now we can implement the search feature anywhere in <App /> by referring to {sea
 * Add VITE_TMDB_API_KEY to new file .env.local
 * To implement fetching data from the API, declare >> API_BASE_URL, API_KEY and API_OPTIONS (method to fetch) above the declaration of <App />
 ------------------------------------------------------------------------------------------------------------------------------------------------
-Import useEffect Hook to <App /> and implement a GET request to external API
-By having an EMPTY DEPENDENCY array, this request will be ONLY made once when the the application mounts
+Import useEffect Hook to <App /> and implement a GET request to external API as its callback
+By having an EMPTY DEPENDENCY array, this request will be ONLY made once when the application mounts to the DOM
+------------------------------------------------------------------------------------------------------------------------------------------------
+Adding a search query
+First add a 'query' parameter equals to an EMPTY String, i.e., (query = '') in the async fetchMovies callback
+Second, add searchTerm as an argument to fetchMovies(searchTerm) where it is called in the useEffect.
+    Also add searchTerm to the dependency array of useEffect so that everytime the value of searchTerm changes, it will re-render
+Third, add a ternary operator to the assignment of endpoint to check if a query exist, i.e., change the URL endpoint if it does
+NOTE: By implementing encodeURIComponent(query) >> even none String characters can be passed on in a query
 */
