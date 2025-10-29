@@ -3,7 +3,7 @@ import { useDebounce } from "react-use";                              //NOT part
 import Search from "./components/Search.jsx";
 import Spinner from "./components/Spinner.jsx";
 import MovieCard from "./components/MovieCard.jsx";
-import {updateSearchCount} from "./appwrite.js";                      //After setting up appwrite
+import {getTrendingMovies, updateSearchCount} from "./appwrite.js";   //After setting up appwrite
 
 
 //API_BASE_URL, API_KEY and API_OPTIONS are declared above declaration of <App />
@@ -24,6 +24,9 @@ const App = () => {
   const [errorMessage, setErrorMessage] = useState("");
   //To display Results
   const [movieList, setMovieList] = useState([]);
+  //To display Trending movies
+  const [trendingMovies, setTrendingMovies] = useState([]);
+
   const [isLoading, setIsLoading] = useState(false);
   //To reduce API calls made with every keystroke
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -31,7 +34,7 @@ const App = () => {
   //Debounce the search term to prevent making too many API requests by waiting for the user to stop typing for 500ms
   useDebounce(() => setDebouncedSearchTerm(searchTerm), 500, [searchTerm]);             //Setter updates the debouncedSearchTerm
 
-  //Create an async callback to make HTTP requests (to API) >> that will be implemented in useEffect()
+  //Callback (1) --an async callback to make HTTP requests (to API) >> that will be implemented in useEffect()
   const fetchMovies = async (query = "") => {
     //Reset the values for isLoading and errorMessage state variables before making an API request with fetch()
     setIsLoading(true);
@@ -64,7 +67,7 @@ const App = () => {
       //If Response property exists, update the movieList with 'results' (an array) OR none for result use []
       setMovieList(data.results || []);
 
-      //From appwrite setup
+      //From appwrite setup--------------------------------------------------adding search results to DB
       if(query && data.results.length > 0) {
         await updateSearchCount(query, data.results[0])
       }
@@ -81,10 +84,25 @@ const App = () => {
     }
   };
 
+  //Callback (2) --to retrieve search results from DB------------------------------------------------------
+  const loadTrendingMovies = async () => {
+    try {
+      const movies = await getTrendingMovies();       
+      setTrendingMovies(movies);                //Update state of trendingMovies  
+    } catch (error) {
+      console.error(`Error fetching trending movies: ${error}`);
+    }      
+  }
+
 //NOTE: By implementing fetchMovies() call back in useEffect + [] dependency array >> fetching is implemented only once @ mount == React component is 1st added to DOM
   useEffect(() => {
     fetchMovies(debouncedSearchTerm);
   }, [debouncedSearchTerm]);
+
+  //creating a SECOND useEffect with NO dependency array -- only implemented when the application mounts to the DOM
+  useEffect(() => {
+      loadTrendingMovies();
+  },[]);
 
   return (
     //Implementing HTML semantic tags  >> <main> <header> etc. instead of wrapper <div> or </>
@@ -101,8 +119,22 @@ const App = () => {
           <Search searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
         </header>
 
+        {trendingMovies.length > 0 && (
+          <section className="trending">
+            <h2>Trending Movies</h2>
+            <ul>
+               {trendingMovies.map((movie, index) => (
+                  <li key={movie.$id}>                             {/* $ is used in front of .id when data is coming from a DB*/}
+                    <p>{index + 1}</p>                             {/* to list movies from 1, 2, 3 ... instead of indexes 0, 1, 2*/}
+                    <img src={movie.poster_url} alt="Poster" />
+                  </li>
+               ))}
+            </ul>
+          </section>
+        )}
+
         <section className="all-movies">
-          <h2 className="mt-[40px]">All Movies</h2>
+          <h2>All Movies</h2>
 
           {isLoading ? (                                    //A complex ternary operator to display ALL possible outcomes
             <Spinner />

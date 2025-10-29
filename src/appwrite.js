@@ -40,12 +40,22 @@ export const updateSearchCount = async (searchTerm, movie) => {
         console.error(error);
     }
 }
-
-/*
-NOTE: The tutorial lesson uses >> listDocuments(), updateDocuments() and createDocuments() methods but the code editor crossed them out as DEPRECATED methods.
+/* NOTE: The tutorial lesson uses >> listDocuments(), updateDocuments() and createDocuments() methods but the code editor crossed them out as DEPRECATED methods.
 I'm using appwrite 23.3.0 and created TableDB instead of Collection in appwrite.io
 Copilot recommendation >> use listRows(), updateRows() and createRows() instead!!
 Replaced all reference ro documents with rows and doc with row
 --------------------------------------------------------------------------------------------------------------------------------------------------------------
-NOTE: I disregarded copilot recommendations and reverted back to listDocuments(), updateDocuments() and createDocuments() << search worked and captured in DB
-*/
+NOTE: I disregarded copilot recommendations and reverted back to listDocuments(), updateDocuments() and createDocuments() << search worked and captured in DB */
+
+export const getTrendingMovies =  async () => {
+   try {
+       const result = await database.listDocuments(DATABASE_ID, TABLE_ID, [
+           Query.limit(5),                                         //Limit 5 to display
+           Query.orderDesc("count")                             //Search result from highest to lowest
+       ])
+       //return the results
+       return result.documents;
+   } catch (e) {
+       console.error(e);
+   }
+}
