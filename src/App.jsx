@@ -3,6 +3,7 @@ import { useDebounce } from "react-use";                              //NOT part
 import Search from "./components/Search.jsx";
 import Spinner from "./components/Spinner.jsx";
 import MovieCard from "./components/MovieCard.jsx";
+import {updateSearchCount} from "./appwrite.js";                      //After setting up appwrite
 
 
 //API_BASE_URL, API_KEY and API_OPTIONS are declared above declaration of <App />
@@ -62,6 +63,11 @@ const App = () => {
       }
       //If Response property exists, update the movieList with 'results' (an array) OR none for result use []
       setMovieList(data.results || []);
+
+      //From appwrite setup
+      if(query && data.results.length > 0) {
+        await updateSearchCount(query, data.results[0])
+      }
 
     //If returned with an ERROR instead of a response OR 'res' for shorten
     } catch (error) {
